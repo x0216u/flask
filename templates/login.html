@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<title>登录</title>
+
+        <link rel="stylesheet" href="{{url_for('static', filename='css/font-awesome.min.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
+        <!-- 插入jquery -->
+        <script src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
+	</head>
+
+	<body style="height:1000px;">
+		<div id="snow-container" style="height:100%;width:100%">
+
+		</div>
+		<div  id="loginDiv"style="position: absolute; max-width: 700px;width:70%;min-width: 250px;  z-index: 4;top:200px; left: 0; bottom: 0; right: 0;margin:auto;">
+			<div id="login" class="form-w3-agile">
+				<h2 class="sub-agileits-w3layouts">登录</h2>
+				<form action="/login" method="post">
+					<input type="text" name="Eamil" placeholder="用户" required="" />
+					<input type="password" name="Password" placeholder="密码" required="" />
+					<a href="#" class="forgot-w3layouts">忘记密码 ?</a>
+					<div class="submit-w3l">
+						<input type="submit" value="登录">
+					</div>
+                    <p class="p-bottom-w3ls">
+						<a href="javascript:void(0)" onclick="ope(0)">点击注册</a>如果你没有一个帐户。 .
+					</p>
+				</form>
+			</div>
+            <div id="register" class="form-w3-agile" style="display:none">
+				<h2 class="sub-agileits-w3layouts">注册</h2>
+
+					<input type="text" name="rUser" id="rUser" placeholder="用户" required="" />
+                    <input type="text" name="rName" id="rName" placeholder="昵称" required="" />
+                    <input type="text" name="rWb" id="rWb" placeholder="微博地址" required="" />
+                    <input type="text" name="rEmail" id="rEmail" placeholder="邮箱" required="" />
+					<input type="password" name="Password"   id="rPwd" placeholder="密码" required="" />
+				   <input type="password" name="CPassword"  id="rCPwd"  placeholder="确认密码" required="" />
+					<div class="submit-w3l">
+						<input type="submit" onclick="register()" value="点击注册">
+					</div>
+                    <p class="p-bottom-w3ls">
+						<a href="javascript:void(0)" onclick="ope(1)">前往登录</a>
+					</p>
+			</div>
+		</div>
+		<script type="text/javascript">
+            function register() {
+                var user=$("#rUser").val()
+                var pwd=$("#rPwd").val()
+                var cpwd=$("#rCPwd").val()
+                var name=$("#rName").val()
+                var wb=$("#rWb").val()
+                var email=$("#rEmail").val()
+               if( $.trim(user)==''|| $.trim(pwd)==''|| $.trim(cpwd)==''){
+                    alert('不能为空哦')
+                    return
+               }
+               if(pwd!=cpwd) {
+                   alert('密码不一致')
+                   return
+               }
+                var ok = /^[a-zA-Z][a-zA-Z0-9]*$/.test( user );
+               if(!ok){
+                   alert('用户名必须由字母和数字组成,且以字母开头')
+                   return
+               }
+                var reMail = /^(?:[a-zA-Z0-9]+[_\-\+\.]?)*[a-zA-Z0-9]+@(?:([a-zA-Z0-9]+[_\-]?)*[a-zA-Z0-9]+\.)+([a-zA-Z]{2,})+$/;
+               if( $.trim(email)!='' &&!reMail.test(email)){
+                   alert('邮箱格式不正确')
+                     return
+               }
+                $.post('/reg',{user:user,pwd:pwd,wb:wb,email:email,name:name,id:createId()},function (res) {
+                    if(res=='ok'){
+                        alert('注册成功')
+                    }else{
+                         alert('注册失败:'+ res)
+                    }
+                })
+            }
+            function ope(index) {
+
+                    $("#login").toggle()
+                    $("#register").toggle()
+
+            }
+             function createId() {
+                var s = [];
+                var hexDigits = "0123456789abcdef";
+                for (var i = 0; i < 36; i++) {
+                    s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+                }
+                s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+                s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+                s[8] = s[13] = s[18] = s[23] = "-";
+
+                var uuid = s.join("");
+                return uuid;
+            }
+			$(function(){
+				var width=document.body.clientWidth
+				document.body.style.width=width+"px"
+
+
+			})
+			var RENDERER = {
+				SNOW_COUNT: {
+					INIT: 100,
+					DELTA: 1
+				},
+				BACKGROUND_COLOR: 'hsl(%h, 50%, %l%)',
+				INIT_HUE: 180,
+				DELTA_HUE: 0.1,
+
+				init: function() {
+					this.setParameters();
+					this.reconstructMethod();
+					this.createSnow(this.SNOW_COUNT.INIT * this.countRate, true);
+					this.render();
+				},
+				setParameters: function() {
+					this.$window = $(window);
+
+					this.$container = $('#snow-container');
+					this.width = this.$container.width();
+					this.height = this.$container.height();
+					this.center = {
+						x: this.width,
+						y: 0
+					};
+					this.countRate = this.width * this.height / 500 / 500;
+					this.canvas = $('<canvas />').attr({
+						width: this.width,
+						height: this.height
+					}).appendTo(this.$container).get(0);
+					this.context = this.canvas.getContext('2d');
+
+					this.radius = Math.sqrt((this.width / 2) * (this.width / 2) + (this.height / 2) * (this.height / 2));
+					this.hue = this.INIT_HUE;
+					this.snows = [];
+				},
+				reconstructMethod: function() {
+					this.render = this.render.bind(this);
+				},
+				createSnow: function(count, toRandomize) {
+					for(var i = 0; i < count; i++) {
+						this.snows.push(new SNOW(this.width, this.height, this.center, toRandomize));
+					}
+				},
+				render: function() {
+					requestAnimationFrame(this.render);
+					try {
+						var gradient = this.context.createRadialGradient(this.center.x, this.center.y, 0, this.center.x, this.center.y, this.radius),
+							backgroundColor = this.BACKGROUND_COLOR.replace('%h', this.hue);
+
+						gradient.addColorStop(0, backgroundColor.replace('%l', 30));
+						gradient.addColorStop(0.2, backgroundColor.replace('%l', 20));
+						gradient.addColorStop(1, backgroundColor.replace('%l', 5));
+
+						this.context.fillStyle = gradient;
+						this.context.fillRect(0, 0, this.width, this.height);
+
+						for(var i = this.snows.length - 1; i >= 0; i--) {
+							if(!this.snows[i].render(this.context)) {
+								this.snows.splice(i, 1); //返回false  删除雪花  重置画布
+							}
+						}
+						this.hue += this.DELTA_HUE;
+						this.hue %= 360;
+					} catch(e) {
+						this.hue = this.INIT_HUE;
+					}
+					this.createSnow(this.SNOW_COUNT.DELTA, false);
+				}
+			};
+			var SNOW = function(width, height, center, toRandomize) {
+				this.width = width;
+				this.height = height;
+				this.center = center;
+				this.init(toRandomize);
+			};
+			SNOW.prototype = {
+				RADIUS: 10, //雪花半径
+				OFFSET: 4, //雪花内部线条 间距
+				INIT_POSITION_MARGIN: 10, //雪花间距
+				COLOR: 'rgba(255, 255, 255, 0.8)', //雪花颜色
+				TOP_RADIUS: {
+					MIN: 1,
+					MAX: 2
+				}, //雪花顶部小圆半径
+				SCALE: {
+					INIT: 0.01,
+					DELTA: 0.007
+				}, //雪花比例 递增
+				DELTA_ROTATE: {
+					MIN: 0,
+					MAX: Math.PI / 180 * 0.5
+				}, //旋转角度
+				THRESHOLD_TRANSPARENCY: 0.1, //最大比例
+				VELOCITY: {
+					MIN: 0,
+					MAX: 0.6
+				}, //位移速率
+				LINE_WIDTH: 2, //雪花线宽
+				BLUR: 10,
+
+				init: function(toRandomize) {
+					this.setParameters(toRandomize);
+					this.createSnow();
+				},
+				setParameters: function(toRandomize) {
+					if(!this.canvas) {
+						this.radius = this.RADIUS + this.TOP_RADIUS.MAX * 2 + this.LINE_WIDTH;
+						this.length = this.radius * 2;
+						this.canvas = $('<canvas />').attr({
+							width: this.length,
+							height: this.length
+						}).get(0);
+						this.context = this.canvas.getContext('2d');
+					}
+					this.topRadius = this.getRandomValue(this.TOP_RADIUS);
+
+					var theta = Math.PI * 2 * Math.random(); //随机角度值
+
+					this.x = Math.random() * this.center.x + this.INIT_POSITION_MARGIN * Math.cos(theta); //随机x位置
+					this.y = this.center.y + this.INIT_POSITION_MARGIN * Math.sin(theta); //随机y位置  使x,Y 都随机
+					this.vx = this.getRandomValue(this.VELOCITY); //x随机扩散位置及速率
+					this.vy = this.getRandomValue(this.VELOCITY); //y随机扩散位置及速率
+
+					this.deltaRotate = this.DELTA_ROTATE; //旋转速率
+					this.scale = this.SCALE.INIT; //比例 0.04
+					this.deltaScale = 1 + Math.random() * this.SCALE.DELTA; //1->1.005
+					this.rotate = 0;
+
+					if(toRandomize) {
+						for(var i = 0, count = Math.random() * 1000; i < count; i++) {
+							this.x += this.vx;
+							this.y += this.vy;
+							this.scale *= this.deltaScale; //大小比例  0.04=>0.0404
+							this.rotate += this.deltaRotate; //旋转角度比率 -0.5->0.5
+						}
+					}
+				},
+				getRandomValue: function(range) {
+					return range.MIN + (range.MAX - range.MIN) * Math.random();
+				},
+				createSnow: function() {
+					this.context.clearRect(0, 0, this.length, this.length);
+
+					this.context.save();
+					this.context.beginPath();
+					this.context.translate(this.radius, this.radius);
+					this.context.strokeStyle = this.COLOR;
+					this.context.lineWidth = this.LINE_WIDTH;
+					this.context.shadowColor = this.COLOR;
+					this.context.shadowBlur = this.BLUR;
+
+					var angle60 = Math.PI / 180 * 60,
+						sin60 = Math.sin(angle60),
+						cos60 = Math.cos(angle60),
+						threshold = Math.random() * this.RADIUS / this.OFFSET | 0,
+						rate = 0.3 + Math.random() * 0.5,
+						offsetY = this.OFFSET * Math.random() * 2,
+						offsetCount = this.RADIUS / this.OFFSET;
+
+					for(var i = 0; i < 6; i++) {
+						this.context.save();
+						this.context.rotate(angle60 * i);
+
+						for(var j = 0; j <= threshold; j++) {
+							var y = this.OFFSET * j;
+							this.context.moveTo(0, y);
+							this.context.lineTo(y * sin60, y * cos60);
+						}
+						for(var j = threshold; j < offsetCount; j++) {
+							var y = -this.OFFSET * j,
+								x = j * (offsetCount - j + 1) * rate;
+
+							this.context.moveTo(x, y - offsetY);
+							this.context.lineTo(0, y);
+							this.context.lineTo(-x, y - offsetY);
+						}
+						this.context.moveTo(0, 0);
+						this.context.lineTo(0, this.RADIUS);
+						this.context.arc(0, this.RADIUS + this.topRadius, this.topRadius, 0, Math.PI * 2, false);
+						this.context.restore();
+					}
+					this.context.stroke();
+					this.context.restore();
+				},
+				render: function(context) {
+					context.save();
+
+					if(this.scale > this.THRESHOLD_TRANSPARENCY) { //大小大于0.7
+						//透明度 无限接近于0
+						context.globalAlpha = Math.max(0, (1 - this.scale) / (1 - this.THRESHOLD_TRANSPARENCY));
+						//大小比例大于1 或者没界 
+						if(this.scale > 1 || this.x < -this.radius || this.x > this.width || this.y < -this.radius || this.y > this.height) {
+							context.restore(); //重置
+							return false;
+						}
+					}
+					context.translate(this.x, this.y); //每次移动的距离
+					context.rotate(this.rotate); //旋转的角度
+					context.scale(this.scale, this.scale); //x,y比例
+					context.drawImage(this.canvas, this.radius, this.radius); //画画布
+					context.restore();
+
+					if(this.y < this.height / 3) {
+						this.x = this.x + 0.001;
+						this.y += this.vy + 0.04;
+						this.scale = 0.1;
+					} else {
+						this.x += this.vx;
+						this.scale *= this.deltaScale;
+						this.y += this.vy + 0.6;
+					}
+					this.rotate += this.deltaRotate;
+					return true;
+				}
+			};
+
+			$(function() {
+				RENDERER.init();
+			});
+		</script>
+	</body>
+
+</html>

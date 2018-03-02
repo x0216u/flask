@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>主页</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/mui.min.css')}}">
+<!-- 插入jquery -->
+    <script src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
+    <style>
+        body{
+            margin:0px;
+            padding: 0px;
+            background-color: #f5f7f9;
+        }
+        .main{
+            margin:0 auto;
+            display: flex;
+            width:70%;
+            justify-content: space-around;
+
+        }
+        .tip{
+                font-size: 20px;
+                font-weight: normal;
+                font-family: 'Lato', "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        .list{
+            width:60%;
+            padding-top: 40px;
+            background-color: #ffffff;
+        }
+        ul,li{
+            list-style: none;
+            padding-left: 0px;
+        }
+        ul li{
+            display: flex;
+            justify-content:flex-start;
+            align-items: center;
+            padding: 5px 20px;
+        }
+        ul li:hover{
+            background-color: #f9f9f9;
+        }
+        ul li span{
+            padding-right: 10px;
+            font-size: 13px;
+        }
+        .section{
+         padding-bottom: 20px;
+        }
+        .shuoming{
+                margin: 10px 0 30px 0;
+                color: #999;
+                font-family: 'Lato', "PingFang SC", "Microsoft YaHei", sans-serif;
+                font-size: 12px;
+                text-align: center;
+        }
+        .btn{
+                padding: 5px 20px;
+                font-size: 14px;
+                color: #555;
+                background: #fff;
+                border: 2px solid #555;
+                text-decoration: none;
+                border-radius: 2px;
+        }
+        .btn:hover{
+              background: #555;
+              color:#fff;
+        }
+           .active{
+            background: #3884ff;
+            border-left-color: #3884ff;
+            color: #fff;
+            font-weight: 500;
+        }
+     .modal {
+        position: relative;
+        z-index: 10003;
+        border: 1px solid #cccfd6;
+        border-radius: 3px;
+        background: #fff;
+        -webkit-box-shadow: 0 2px 15px 0 rgba(140,144,155,.5);
+        -moz-box-shadow: 0 2px 15px 0 rgba(140,144,155,.5);
+        box-shadow: 0 2px 15px 0 rgba(140,144,155,.5);
+        width: 600px;
+        margin: 60px auto;
+         padding: 10px 10px;
+    }
+     .modal-heading{
+         position: relative;
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+     }
+     .modal-body{
+
+     }
+     .modal .modal-footer {
+    border-top: 1px solid #e8eaed;
+    padding: 15px;
+    text-align: right;
+   }
+            .inputControl{
+         width: 90%;
+        border-radius: 2px;
+        font-size: 1.1rem;
+        border: 1px solid #e8eaed;
+        background: #fff;
+        outline: 0;
+        color: #333;
+        padding: 6px 8px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        border-radius: 3px;
+     }
+     .newArticle{
+         display: none;
+         position: absolute;
+         top:100px;
+         left: 0; bottom: 0; right: 0;
+     }
+     .modal-footer button{
+         font-weight: 500;
+         padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        border-radius: 3px;
+         box-shadow: none;
+        text-decoration: none;
+        text-shadow: none;
+     }
+      .about{
+          text-align: center;
+          color: #555;
+      }
+      .about div{
+          padding-bottom: 30px;
+      }
+      .contact{
+          padding:5px 10px;
+      }
+      .contact:hover{
+           background-color: #f9f9f9;
+      }
+          @media screen and (max-width: 720px) {
+    .left {
+        display: none;}
+              .list{
+                  width:100%;
+            padding-top: 40px;
+            background-color: #ffffff;
+              }
+              .main{
+                  width: 100%;
+              }
+    }
+    </style>
+    <script>
+        function turnTo(index) {
+            if(index==1){
+                window.location='/home'
+            }
+            else if(index==2){
+                showDrop()
+                 $(".newArticle").css("display","block")
+
+            }
+            else if(index==3){
+                var div=$("<div class='about'></div>")
+                div.append('<div>qq:940120528</div>')
+                div.append('<div>© 2009-2018 绯叶阿卡丽 版权所有 <div>')
+                $('.section').html(div)
+            }
+        }
+        function AddTitle() {
+             var title= $(".inputControl").val();
+             var intro= $(".introControl").val();
+             if(title.trim()=='')
+                 return
+             closeNewArticle()
+              var id=createId();
+             $.post('/home',{action:'add', id: id, title:title,intro:intro},function (res) {
+                 if(res=='ok'){
+                     window.location='/wrrite?id='+id;
+                 }else{
+                     alert('由于未知原因,添加失败')
+                 }
+             })
+        }
+        function  closeNewArticle() {
+             $(".newArticle").css("display","none")
+            $(".inputControl").val(' ');
+            closeDrop()
+        }
+         function showDrop() {
+       $("#backDrop").css("display",'block')
+    }
+   function  closeDrop() {
+        $("#backDrop").css("display",'none')
+   }
+    function createId() {
+            var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 36; i++) {
+            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+        }
+        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+        s[8] = s[13] = s[18] = s[23] = "-";
+
+        var uuid = s.join("");
+        return uuid;
+   }
+   function view(target) {
+       var id=$(target).attr("id")
+        window.location='/view?id='+id;
+   }
+    </script>
+</head>
+<body>
+   <h1 style="width: 90%;margin:0 auto;border:2px solid #222222;"></h1>
+    <div class="newArticle" >
+               <div class="modal ">
+                   <div class="modal-heading">
+                       <h4>New Article</h4> <span  onclick="closeNewArticle()" style="color:#3884ff;" class="mui-icon mui-icon-closeempty"></span>
+                   </div>
+                   <div class="modal-body">
+
+                         <div class="form-group col-xs-12" style=" padding:10px 5px;"><label >Title</label></div>
+                                   <input type="text" class="inputControl" name="title" value=""/><!-- react-text: 2066 --><!-- /react-text -->
+
+                         <div class="form-group col-xs-12" style=" padding:10px 5px;"><label >Introduce</label></div>
+                                       <input type="text" class="introControl" name="Introduce" value=""/><!-- react-text: 2066 --><!-- /react-text -->
+                        </div>
+                   <div class="modal-footer ">
+                    <button type="button" onclick="closeNewArticle()" style=" border: 1px solid #cccfd6;background: #f6f7f8;color: #6e737d;" role="button">Cancel<!-- /react-text --></button>
+                       <button type="button" onclick="AddTitle()" style=" border: 1px solid #e8eaed;background: #3277e6;;color: #ffffff;" role="button">Add<!-- /react-text --></button>
+                   </div>
+               </div>
+    </div>
+    <div id="backDrop" style="display: none;position: absolute;top:0;left: 0;right: 0;bottom:0; background-color:rgba(204,207,214,.45);;z-index:10002;"></div>
+   <div class="main">
+        <div class="left">
+           <div  class="tip" style="background-color: #222222;height:105px;width: 245px;color: #fff;text-align: center;vertical-align: middle;line-height: 70px "> 再见不知道哪一天<div style="font-size: 13px;color: #ddd;line-height: 20px">绣花儿枕陪我过夜</div> </div>
+          <ul style="background-color: #ffffff;padding-top: 20px">
+             <li onclick="turnTo(1)"> <span class="mui-icon mui-icon-home"></span> <span>首页</span></li>
+              <li onclick="turnTo(2)"> <span class="mui-icon mui-icon-compose"></span> <span>写作</span></li>
+             <li  onclick="turnTo(3)"> <span class="mui-icon mui-icon-person"></span> <span>关于</span></li>
+             <li> <span class="mui-icon mui-icon-search"></span> <span>搜索</span></li>
+             <li> <span class="mui-icon mui-icon-help"></span>  <span>帮助</span></li>
+          </ul>
+            <div style="background-color: #ffffff;padding-top: 20px">
+                <div style="margin: 0;text-align: center;color: #222;font-weight: 600;width:100%">{{ user.name }}</div>
+                <div>
+                    <div style=" padding:0 20px 10px 20px" >
+                        <div class="contact">
+                        <span class="mui-icon mui-icon-weibo"></span>
+                         <a style="color: #555; font-size: 13px" target="_blank" href="{{ user.weibo }}">Weibo</a>
+                        </div>
+                         <div class="contact">
+                          <span class="mui-icon mui-icon-email" ></span>
+                         <a style="color: #555;font-size: 13px"  target="_blank" href="mailto:{{ user.email }}">Email</a>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+       <div class="list">
+          <div class="section">
+              {% for item in list %}
+                  <div style="color: #555;border-bottom: none; line-height: 1.2;margin:5px auto;font-size: 20px;text-align: center">{{ item.title }}</div>
+                  <div class="shuoming"> <span class="mui-icon-extra mui-icon-extra-regist"></span>  发表于{{ item.ptime|sub(0,10) }} |  更新于: {{ item.utime }} </div>
+                  <div style="font-size: 14px;line-height: 2;color: #555;margin-left:40px;margin-right: 40px;"><p>{{ item.intro}}</p> </div>
+                  <div style="text-align: center;height:60px;margin-top:10px"><a class="btn" href="javascript:void(0)" rel="contents" onclick="view(this)" id="{{ item.sid }}">
+                  阅读全文 »
+                  </a></div>
+                  <div style="width:100%;text-align: center">
+                     <div style="display: block; margin: 20px auto 40px; width: 8%;height: 1px;background: #ccc;text-align: center;"></div>
+                  </div>
+              {% endfor %}
+          </div>
+       </div>
+   </div>
+
+
+</body>
+</html>

@@ -1,0 +1,468 @@
+{% extends "layout.html" %}
+{% block script %}
+    <script src="{{url_for('static', filename='js/wangEditor.js')}}"></script>
+    <script>
+    var editor=''
+    $(function () {
+         var E = window.wangEditor
+         editor = new E('#wangMenu','#wangEditor')
+        // 或者 var editor = new E( document.getElementById('editor') )
+        editor.create()
+        editor.txt.html('<h1 data-key="5" style="text-align: center;"><span data-key="4"><span data-offset-key="4-0">My Awesome Book</span></span></h1>')
+        getArticle($("#tree .active"))
+         var height=$(window).height();
+         $(".leftTree").css("height",height-90)
+        $('body').click(function () {
+             $("#menu").css("display","none")
+        })
+
+        $('body').on('click',"#tree .article", function(){
+
+            var list=  $("#tree .article")
+            var that=this;
+            //如果已经选中
+            if($(that).attr('class').indexOf('active')>-1)
+                return;
+
+            var nextId=$(that).attr('id')
+            var lastEle= $("#tree .active")
+            saveArticle(lastEle,nextId)
+              $.each(list,function (index,item) {
+
+                  if(item==that){
+                        $(item).attr("class" ,"article active")
+                        editor.txt.html(' ')
+                  }
+                  else{
+                         $(item).attr("class" ,"article")
+                  }
+              })
+        })
+        $("#addArticle").click(function () {
+            showDrop()
+            $(".newArticle").css("display","block")
+        })
+        document.oncontextmenu = function(e){
+         if(window.event) e = window.event;
+         return contentMenu(e)
+
+        }
+
+
+    })
+        var listEle=[];
+        function getArticle(ele){
+              var guid =$(ele).attr('id');
+
+               $.get('/detail', {id: guid}, function (res) {
+                if (res) {
+
+                   editor.txt.html(res);
+                }
+              })
+        }
+        function saveArticle(ele,nextId) {
+            var guid =$(ele).attr('id');
+            var ope = ''
+            var content = editor.txt.html();
+            var title=$(ele).text()
+            var order=$(ele).attr('order')
+
+            if(typeof (nextId)=='undefined'||nextId=='')
+                nextId=''
+            if (guid==''||typeof(guid)=='undefined') {
+                guid = createId()
+                $(ele).attr('id',guid)
+                //listEle.push({ele:ele,id:guid})
+
+            }
+            $.post('/wrrite', {id: guid, content: content,nextId:nextId,order:order,title:title}, function (res) {
+                if (res) {
+                   editor.txt.html(res);
+
+                }
+                if(nextId=='1'){
+                    window.location='/home'
+                }
+            })
+
+        }
+        function getId(ele){
+            $.each(listEle,function (index ,item) {
+                if(item.ele==ele)
+                    return item.id
+            })
+            return '';
+        }
+
+        function contentMenu(e) {
+            var tree=$(".leftTree")
+            if(  e.clientX <tree.width()&&e.clientY<tree.height() ){
+               showMenu(e)
+               return  false;
+            }else{
+                return true
+            }
+        }
+        function showMenu(e) {
+             var x=e.clientX;
+             var y=e.clientY;
+
+             $('#menu').css('display','block').css('left',x).css('top',y)
+        }
+       function  closeNewArticle() {
+             $(".newArticle").css("display","none")
+            $(".inputControl").val(' ');
+            closeDrop()
+        }
+        function AddTitle() {
+             var title= $(".inputControl").val();
+             if(title.trim()=='')
+                 return
+             closeNewArticle()
+            var id=createId();
+            var order=getNextOrder();
+            var div=$("<div order='"+order+"'   id='"+id+"' parent='0' class=\"article\">"+title+"</div>");
+            if(parent==0)
+                $("#tree").append(div)
+            else{
+                 var left=$(parent).css('padding-left');
+                 if(left.indexOf('px')>-1)
+                     left=left.substr(0,left.length-2)
+                 left=parseInt(left)+20;
+                 order=getChildOrder(parent)
+                 div=$("<div  parent='"+getId(parent)+"'  id='"+id+"'  order='"+order+"'  style='padding-left:"+left+"px' class=\"article\">"+title+"</div>");
+                //之后添加
+                 $(parent).after(div)
+             }
+            $.post('/changeSummary', {id: id, title: title,order:order,ope:'add'}, function (res) {
+                if (res=='error') {
+                   alert('添加失败')
+                }
+            })
+            parent=0;
+        }
+    function getNextOrder(){
+         var list= $("#tree  div[parent=0]")
+        return parseInt($(list[list.length-1]).attr('order'))+100;
+    }
+    function getChildOrder(ele) {
+        var id=getId(ele)
+        var list= $("#tree div[parent="+id+"]")
+        if(list.length>0)
+             return   $(list[list.length-1]).attr('order').substr(1,2)=='00'?parseInt($(list[list.length-1]).attr('order'))+10:parseInt($(list[list.length-1]).attr('order'))+1
+        else
+            return  $(ele).attr('order').substr(1,2)=='00'? parseInt($(ele).attr('order'))+10: parseInt($(ele).attr('order'))+1;
+    }
+    function menuName() {
+        var ele=$("#tree .active")
+        if(ele){
+            var txt=ele.text()
+            ele.html(  '<input onkeyup="rename(this)" style="color:#333;width:90%" type="text" value="'+txt+'" /> ')
+        }
+    }
+    function rename(target) {
+        var keyCode=window.event.keyCode
+        if(keyCode==13){
+            var val=$(target).val()
+             $.post('/changeSummary', {id: $(target).parent().attr('id'), title: val,ope:'update'}, function (res) {
+                if (res=='error') {
+                   alert('修改失败')
+                }
+            })
+            $(target).parent().html(val)
+
+        }
+    }
+     function menuRemove() {
+        var ele=$("#tree .active")
+        if(ele){
+           ele.remove()
+             $.post('/changeSummary', {id: $(ele).attr('id'), title: '',ope:'delete'}, function (res) {
+                if (res=='error') {
+                   alert('修改失败')
+                }
+            })
+        }
+    }
+    var parent=0;
+    function menuAdd() {
+        var ele=$("#tree .active")
+        if(ele){
+            parent=ele
+            showDrop()
+            $(".newArticle").css("display","block")
+        }
+    }
+   function createId() {
+            var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 36; i++) {
+            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+        }
+        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+        s[8] = s[13] = s[18] = s[23] = "-";
+
+        var uuid = s.join("");
+        return uuid;
+   }
+    function ShowLoading() {
+      var loading= $("#loading").html()
+       editor.txt.html(loading)
+  }
+   function publish() {
+       saveArticle($('#tree .active'),'1')
+   }
+    </script>
+     <style type="text/css">
+        .add button{
+            color: #3884ff;
+            outline: none;
+            background: rgba(0,0,0,0);
+            border: 1px solid #3884ff;
+            box-shadow: none;
+            text-decoration: none;
+            text-shadow: none;
+            cursor: pointer;
+
+            font-weight: 500;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            border-radius: 3px;
+            margin:20px auto;
+        }
+        #title{
+            position: absolute;
+            top: 0;
+            height:60px;
+            left:0;
+            right: 0;
+            z-index: 10001;
+            padding: 10px 0;
+            background: #fff;
+            color: #555;
+            border-bottom: 1px solid #e5e5e5;
+            box-shadow: 0 3px 2px -2px rgba(200,200,200,.15);
+        }
+        .toolbar {
+
+        }
+        .rightContent{
+            padding: 0;
+        }
+        .leftTree{
+            background-color: white;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            top:81px;
+            min-width: 220px;
+        }
+        .text {
+            position: absolute;
+            top:81px;
+            right:0px;
+            width:85%;
+            bottom:0;
+            background-color: #FAFAFA;
+            border-left: 1px solid #e5e5e5;
+            overflow-y: scroll;
+        }
+        .content{
+            background-color: #FAFAFA;
+        }
+         .editorArea{
+             margin: 0 auto;
+             width:100%;
+             max-width: 800px;
+         }
+        .w-e-text {
+             margin: 50px auto;
+             width:100%;
+            max-width: 800px;
+            padding: 0 10px;
+            overflow-y: visible  !important;
+            background-color: white;
+            min-height: 1056px;
+            height:1056px;
+             height:auto !important;
+            font-size: 14px;
+            background: #fff;
+            border: 1px solid #e8eaed;
+            border-radius: 2px;
+            padding: 30px;
+            cursor: text;
+            position: relative;
+         }
+        .article{
+            padding: 6px 5px;
+            cursor: default;
+            display: block;
+        }
+        .active{
+            background: #3884ff;
+            border-left-color: #3884ff;
+            color: #fff;
+            font-weight: 500;
+        }
+     .modal {
+        position: relative;
+        z-index: 10003;
+        border: 1px solid #cccfd6;
+        border-radius: 3px;
+        background: #fff;
+        -webkit-box-shadow: 0 2px 15px 0 rgba(140,144,155,.5);
+        -moz-box-shadow: 0 2px 15px 0 rgba(140,144,155,.5);
+        box-shadow: 0 2px 15px 0 rgba(140,144,155,.5);
+        width: 600px;
+        margin: 60px auto;
+         padding: 10px 10px;
+    }
+     .modal-heading{
+         position: relative;
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+     }
+     .modal-body{
+         height:100px;
+     }
+     .modal .modal-footer {
+    border-top: 1px solid #e8eaed;
+    padding: 15px;
+    text-align: right;
+   }
+     #menu{
+         position: absolute;
+         min-width:160px;
+         border: 1px solid #e8eaed;
+         z-index: 10003;
+         background-color: white;
+     }
+      #menu ul{
+          padding-left:0px;
+          margin: 0px;
+      }
+       #menu ul li{
+           margin: 0px;
+          padding: 4px 5px;
+          color: #333;
+          font-size: 14px;
+           line-height:100%;
+           display: flex;
+           justify-content: flex-start;
+           align-items: center;
+      }
+
+      #menu ul li:hover{
+          background-color: #3884ff;
+      }
+      ul li{
+          list-style: none;
+      }
+    #publish:hover{
+        background-color: #3884ff !important;
+        cursor: pointer;
+    }
+     .inputControl{
+         width: 90%;
+        border-radius: 2px;
+        font-size: 1.1rem;
+        border: 1px solid #e8eaed;
+        background: #fff;
+        outline: 0;
+        color: #333;
+        padding: 6px 8px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        border-radius: 3px;
+     }
+     .newArticle{
+         display: none;
+     }
+     .modal-footer button{
+         font-weight: 500;
+         padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        border-radius: 3px;
+         box-shadow: none;
+        text-decoration: none;
+        text-shadow: none;
+     }
+    </style>
+
+{% endblock %}
+{% block tool %}
+     <div id="menu" style="display: none">
+      <ul>
+          <li onclick="menuAdd()"> <span style="font-size:24px " class="mui-icon mui-icon-plusempty"></span> <span >Add Child Article</span> </li>
+          <li onclick="menuName()"><span style="font-size:24px " class="mui-icon mui-icon-compose"></span> <span >Rename</span></li>
+          <li onclick="menuRemove()"><span style="font-size:24px " class="mui-icon mui-icon-trash"></span> <span >Remove</span></li>
+      </ul>
+    </div>
+{% endblock %}
+{% block tree %}
+
+    <div id="tree"  style="padding-top:10px;" >
+        {% if trees %}
+            {% for item in trees %}
+                    {% if trees[0]==item %}
+                         <div  id="{{ item.id }}"  class="article active" parent="0" order="{{ item.order }}" >{{ item.title}}</div>
+                    {% elif (item.order)[1:3]=='00' %}
+                          <div  id="{{ item.id }}"  class="article" parent="0" order="{{ item.order }}" >{{ item.title}}</div>
+
+                   {% elif   (item.order)[2:3]=='0' %}
+                         <div  id="{{ item.id }}"  class="article" style="padding-left: 25px"  order="{{ item.order }}" >{{ item.title}}</div>
+                    {% else %}
+                         <div  id="{{ item.id }}"  class="article" style="padding-left: 50px"  order="{{ item.order }}" >{{ item.title}}</div>
+                   {% endif  %}
+
+            {% endfor %}
+        {% else %}
+            <div parent="0" order="100" class="article active">Introduction</div>
+            <div parent="0" order="200" class="article">First Chapter</div>
+       {% endif  %}
+    </div>
+     <div class="add" style="text-align: center">
+        <button type="button" id="addArticle" class="btn btn-marketing-primary btn-md" role="button"><i class="Icon octicon octicon-plus"></i>Add an article</button>
+     </div>
+
+{% endblock %}
+
+{% block content %}
+    <div id="title" style="display: flex;justify-content: space-between;align-items: center">
+         <div style="width: 400px;line-height: 60px">
+              <img src="{{url_for('static', filename='images/logo.jpg')}}"  style="width:65px;height:65px;float: left" />
+              <div style="color: #4183c4;float: left;margin-left:10px;">$筱悬木的叶子</div>
+         </div>
+
+        <div>
+             <div id="wangMenu" class="toolbar" style="float: left"></div>
+             <div id="publish" onclick="publish()" style="background: #9cc2ff;border-color: #9cc2ff;  float: left;margin-right: 10px;color: #fff; padding: 5px 10px; font-size: 12px;line-height: 1.5;border-radius: 2px; ">Publish</div>
+        </div>
+     </div>
+
+    <div class="newArticle">
+               <div class="modal ">
+                   <div class="modal-heading">
+                       <h4>New Article</h4> <span  onclick="closeNewArticle()" style="color:#3884ff;" class="mui-icon mui-icon-closeempty"></span>
+                   </div>
+                   <div class="modal-body">
+
+                         <div class="form-group col-xs-12" style=" padding:10px 5px;"><label >Title</label></div>
+                                   <input type="text" class="inputControl" name="title" value=""/><!-- react-text: 2066 --><!-- /react-text -->
+                          </div>
+                   <div class="modal-footer ">
+                    <button type="button" onclick="closeNewArticle()" style=" border: 1px solid #cccfd6;background: #f6f7f8;color: #6e737d;" role="button">Cancel<!-- /react-text --></button>
+                       <button type="button" onclick="AddTitle()" style=" border: 1px solid #e8eaed;background: #3277e6;;color: #ffffff;" role="button">Add<!-- /react-text --></button>
+                   </div>
+               </div>
+    </div>
+    <div id="wangEditor" class="text"> </div>
+
+
+{% endblock %}
+

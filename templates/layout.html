@@ -1,0 +1,105 @@
+<!doctype html xmlns:wb=“http://open.weibo.com/wb”>
+<title>绯叶阿卡丽</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<head>
+<script src="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script>
+
+
+<style>
+    body{
+        margin: 0px;
+        padding: 0px;
+    }
+    .main{
+        display: flex;
+        width: 100%;
+        height: 100%;
+        justify-content: flex-start;
+    }
+    .leftTree{
+       background-color: #FAFAFA;
+        width: 15%;
+        min-width: 240px;
+        height: 100%;
+        z-index: 1;
+        overflow-y: auto;
+        color: #364149;
+        background: #fafafa;
+        border-right: 1px solid rgba(0,0,0,.07);
+     /*border:2px solid antiquewhite;*/
+    }
+    .rightContent{
+        height: 100%;
+        width:100%;
+        padding: 10px;
+    }
+    @media screen and (max-width: 720px) {
+    .leftTree {
+        display: none;}
+    }
+
+    @font-face{font-family:FontAwesome;src:url( {{url_for('static', filename='css/fonts/fontawesome-webfont.woff2')}});}
+</style>
+<link rel="stylesheet" href="{{url_for('static', filename='css/loading.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='css/mui.min.css')}}">
+<!-- 插入jquery -->
+<script src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
+<script >
+    $(function () {
+         var height=$(window).height();
+         $(".leftTree").css("height",height-20)
+        var width=$(window).width()
+
+    })
+   function closeTree() {
+       $(".leftTree").css("display",'none')
+   }
+    function showTree() {
+       $(".leftTree").css("display",'block')
+   }
+   function showDrop() {
+       $("#backDrop").css("display",'block')
+   }
+   function  closeDrop() {
+        $("#backDrop").css("display",'none')
+   }
+</script>
+{% block script %}
+
+{% endblock %}
+</head>
+<body>
+<div id="backDrop" style="display: none;position: absolute;top:0;left: 0;right: 0;bottom:0; background-color:rgba(204,207,214,.45);;z-index:10002;"></div>
+<div class="main">
+    <div class="leftTree" >
+        {% block tree %}
+
+        {% endblock %}
+    </div>
+    <div class="rightContent" >
+
+        {% block content %}
+
+        {% endblock %}
+    </div>
+
+</div>
+
+<div id='otherTool' style="position: absolute;z-index:10002;">
+     {% block tool %}
+
+     {% endblock %}
+</div>
+</body>
+
+
+
+
+
+
+
+
+
+
+

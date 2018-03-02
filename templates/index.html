@@ -1,0 +1,215 @@
+{% extends "layout.html" %}
+{% block script %}
+<style>
+.fa {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.book-header {
+    display: block;
+    height: 50px;
+    padding: 0 15px;
+    border-bottom: none;
+    color: #ccc;
+    text-transform: uppercase;
+    line-height: 50px;
+}
+.fa-align-justify:before {
+    content: "\f039";
+    color: #ccc;
+}
+ul{
+    padding: 0px;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #364149;
+    font-size: 14px;
+    letter-spacing: .2px;
+}
+.summary  a{
+    text-decoration: none;
+    color: #364149;
+}
+ul.summary {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    -webkit-transition: top .5s ease;
+    -moz-transition: top .5s ease;
+    -o-transition: top .5s ease;
+    transition: top .5s ease;
+}
+
+ul li{
+    margin-left: 20px;
+}
+.article li{
+    list-style: none;
+    line-height: 16px;
+
+}
+li{
+     padding-top: 5px;
+     padding-bottom: 5px;
+}
+ul li:hover{
+    text-decoration: underline;
+}
+.title{
+    padding: 6px;
+    background: 0 0;
+    transition: top .5s ease;
+    background: #fff;
+    border-bottom: 1px solid rgba(0,0,0,.07);
+    border-top: 1px solid rgba(0,0,0,.07);
+    margin-bottom: 10px;
+    margin-top: -1px;
+
+}
+.title input{
+    outline: none;
+    padding: 7px 7px;
+    width: 90%;
+    line-height: 22px;
+    background-color: #ffffff;
+    border:none;
+}
+.markdown-section {
+    display: block;
+    word-wrap: break-word;
+    overflow: hidden;
+    color: #333;
+    line-height: 1.7;
+    text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+}
+.markdown-section a {
+    color: #4183c4;
+    text-decoration: none;
+    background: 0 0;
+}
+.page-inner {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px 15px 40px 15px;
+}
+.active{
+    color:#4183c4 !important;
+}
+</style>
+  <script type="text/javascript">
+     $(function () {
+      //默认加载第一个
+       ShowLoading();
+       var firstEle=$(".summary li ").first();
+       $(".summary li a").first().attr("class" ,"active")
+       var firstid= firstEle.attr("id")
+       $.get("/detail?id="+firstid,'',function (res) {
+                  if(res){
+                  $("#contentSection").html(res)
+                  }
+          })
+      //点击事件
+      $(".summary li ").click(function () {
+           toggleColor($(this).find('a')[0])
+           ShowLoading();
+          var id=$(this).attr("id")
+          $.get("/detail?id="+id,'',function (res) {
+                  if(res){
+                  $("#contentSection").html(res)
+                  }
+          })
+      })
+       $("#treeToggle").click(function () {
+           $(".leftTree").toggle()
+       })
+     })
+     function  toggleColor(target) {
+          var list=  $(".summary li ").find('a')
+          $.each(list,function (index,item) {
+              if(item==target){
+                    $(item).attr("class" ,"active")
+              }
+              else{
+                     $(item).attr("class" ,"")
+              }
+          })
+     }
+  function ShowLoading() {
+
+      var loading= $("#loading").html()
+       $("#contentSection").html(loading)
+  }
+   </script>
+{% endblock %}
+
+
+{% block tree %}
+
+     <div class="title">
+     <input  type="text" value="" placeholder=" Press key to search" >
+     </div>
+       <ul class="summary">
+        {% for item in trees %}
+            <li  id="{{ item.id }}" >
+           {% if (item.order)[1:3]=='00' %}
+               <a   href="#" > {{ item.title}}</a>
+           {% else  %}
+               <ul class="article">
+               <li  id="{{ item.id }}" >
+                   <a   href="#" > {{ item.title}}</a></li>
+               </ul>
+           {% endif  %}
+          </li>
+        {% endfor %}
+       </ul>
+
+{% endblock %}
+
+
+{% block content %}
+    <div class="book-header" role="navigation">
+    <!-- Title -->
+    <a  aria-label=""  id="treeToggle" href="#"><i class="fa fa-align-justify"></i></a>
+   <wb:share-button appkey="2886769817" addition="number" type="icon" default_text="我发表了一篇文章快来看看吧" pic="http%3A%2F%2Ftvax1.sinaimg.cn%2Fcrop.6.6.553.553.50%2Fb3db43ebly8fdl7cttj0wj20fk0fk3zj.jpg"></wb:share-button>
+   </div>
+ <div class="page-inner">
+
+<div id="book-search-results" class="">
+    <div class="search-noresults">
+<p style="display: none">Do you want to <a href="{{ url_for('detail') }}">log in?</a>
+         <section class="normal markdown-section" id="contentSection">
+
+         </section>
+    </div>
+</div>
+ </div>
+<div id="loading" style="display: none">
+  <div class='loading-anim' style="margin-top: 200px">
+                <div class='border out'></div>
+                <div class='border in'></div>
+                <div class='border mid'></div>
+                <div class='circle'>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                    <span class='dot'></span>
+                </div>
+            </div>
+</div>
+
+{% endblock %}
