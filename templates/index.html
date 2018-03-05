@@ -129,6 +129,7 @@ ul li:hover{
        $("#treeToggle").click(function () {
            $(".leftTree").toggle()
        })
+       weiboShare()
      })
      function  toggleColor(target) {
           var list=  $(".summary li ").find('a')
@@ -146,6 +147,21 @@ ul li:hover{
       var loading= $("#loading").html()
        $("#contentSection").html(loading)
   }
+  /* weiboShare */
+	function weiboShare(){
+		var wb_shareBtn = document.getElementById("shareBtn")
+			wb_url			= window.location.href, //document.URL,
+			wb_appkey		= "2886769817",
+			wb_title			= "我发表了一篇文章快来看看吧",
+			wb_ralateUid	= "",
+			wb_pic			= "",
+			wb_language	= "zh_cn";
+
+			$(wb_shareBtn).attr("href","http://service.weibo.com/share/share.php?url="+wb_url+"&appkey="+wb_appkey+"&title="+wb_title+"&pic="+wb_pic+"&ralateUid="+wb_ralateUid+"&language="+wb_language+"");
+	}
+
+
+
    </script>
 {% endblock %}
 
@@ -176,8 +192,9 @@ ul li:hover{
 {% block content %}
     <div class="book-header" role="navigation">
     <!-- Title -->
-    <a  aria-label=""  id="treeToggle" href="#"><i class="fa fa-align-justify"></i></a>
-   <wb:share-button appkey="2886769817" addition="number" type="icon" default_text="我发表了一篇文章快来看看吧" pic="http%3A%2F%2Ftvax1.sinaimg.cn%2Fcrop.6.6.553.553.50%2Fb3db43ebly8fdl7cttj0wj20fk0fk3zj.jpg"></wb:share-button>
+      <a  aria-label=""  id="treeToggle" href="#"><i class="fa fa-align-justify"></i></a>
+
+      <a  class="mui-icon mui-icon-weibo" style="color:#cccccc;margin-left: 10px" title="分享到微博" target="_blank" type="icon" id="shareBtn"></a>
    </div>
  <div class="page-inner">
 
