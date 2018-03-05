@@ -148,8 +148,8 @@ def changeSummary():
                 excuteOther('delete airticleSummray   where id=\'' + str(id) + "'")
             elif ope=='add':
                 order= request.values.get('order', 0)
-                sql = 'insert into airticleSummray([id] ,[uid],[type],[order],[title]) VALUES ( \'' + str(
-                    id) + '\',1,2,\'' + order + '\',\'' + title + '\'  )'
+                sql = 'insert into airticleSummray([id] ,[uid],[type],[order],[title],[aid]) VALUES ( \'' + str(
+                    id) + '\',\''+  session["userid"]+'\',2,\'' + order + '\',\'' + title + '\',\'' +  session['aid']  + '\'  )'
                 excuteOther(sql)
             return 'ok'
         else:
